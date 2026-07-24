@@ -13,9 +13,13 @@ export interface SearchResponse {
   results: SearchResult[];
 }
 
-/** Sanitize user input for safe FTS5 MATCH (quote each term). */
+/** Sanitize user input for safe FTS5 MATCH (escape special chars, quote each term). */
 function sanitizeFtsQuery(raw: string): string {
-  return raw.trim().split(/\s+/).map((term) => `"${term}"`).join(' ');
+  return raw.trim().split(/\s+/).map((term) => {
+    // Escape FTS5 special characters to prevent injection and parse errors
+    const escaped = term.replace(/["{}*\-+]/g, '');
+    return `"${escaped}"`;
+  }).join(' ');
 }
 
 /** Factory that produces a /search route handler. */
