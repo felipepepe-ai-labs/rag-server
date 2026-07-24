@@ -2,28 +2,11 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": ".",
+    "rootDir": "./src",
     "sourceMap": true,
     "declaration": false,
-    "@ts-expect-error": [/* placeholder for stricter settings */],
-    /* Node-specific strict flags */
-    "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }
-EOF && cat > src/server/index.ts << 'TS'
-/**
- * Entry point for @sandman/rag-server
- * Skeleton created during initial scaffoldid — intentionally minimal to unblock first build cycle.
- */
-
-import { serve } from '@elysiajs/bun'; // NOTE: swap with real runtime after bootstrap; kept as TODO marker not a dependency yet
-/* Placeholder auto-generated; replace when wiring first functional module */
-export const app = null satisfies unknown;
-
-/** Default placeholder to satisfy type-check pre-implement. */
-void (async () => { /* noop placeholder */ })();
-TS

@@ -5,7 +5,9 @@
   "description": "RAG server built on Node.js + TypeScript with SQLite vector store and Ollama-backed embeddings.",
   "main": "./dist/server/index.js",
   "type": "module",
-  "engines": { "node": ">=20.11" },
+  "engines": {
+    "node": ">=20.11"
+  },
   "scripts": {
     "dev": "tsx watch src/server/index.ts",
     "build": "tsc -b && node scripts/post-build.cjs",
@@ -13,17 +15,21 @@
     "lint": "eslint . --ext ts",
     "test": "vitest run"
   },
-  "keywords": ["rag", "typescript", "nodejs"],
+  "keywords": [
+    "rag",
+    "typescript",
+    "nodejs"
+  ],
   "license": "MIT",
   "dependencies": {
-    "@elysiajs/cors": "^0.210.0",
+    "@elysiajs/cors": "^1.1.1",
     "better-sqlite3": "^9.6.0",
-    "dotenv": "^16.4.5",
-    "node-llama-cpp": "^0.18.7"
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
-    "@types/node": "^20.14.0",
     "@tsconfig/strictest": "^2.0.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.14.0",
     "tsx": "^4.13.0",
     "typescript": "~5.4.5",
     "vitest": "^1.6.0"
