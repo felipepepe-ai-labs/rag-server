@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
+    "allowJs": false,
+    /* Emit (none — used as base; sub-projects override) */
+    "types": ["node"]
+  }
+}
