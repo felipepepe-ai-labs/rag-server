@@ -27,11 +27,14 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  if (proc) {
+  if (proc && !proc.killed) {
     proc.kill('SIGTERM');
-    await new Promise<void>((resolve) => proc!.on('exit', resolve));
-    proc = undefined;
+    await new Promise<void>((resolve) => {
+      const t = setTimeout(resolve, 2000);
+      proc!.once('exit', () => { clearTimeout(t); resolve(); });
+    });
   }
+  proc = undefined;
 });
 
 describe('/health endpoint', () => {

@@ -74,11 +74,11 @@ src/
 ```
 
 ## Implementation Tasks (Apply Phase)
-- [ ] **Task 01**: Create DB engine module (`src/db/engine.ts`) with `better-sqlite3` singleton and initialization
-- [ ] **Task 02**: Create schema setup script including vectors table, FTS5 virtual view, and triggers
-- [ ] **Task 03**: Create `/src/server/index.ts` Elysia app entry point with CORS, health endpoint, error middleware
-- [ ] **Task 04**: Implement DB service for inserting text + JSON-encoded embeddings into both tables
-- [ ] **Task 05**: Build `/search` handler: parse query → FTS5 candidate fetch → JS cosine sort → return top-K scored results
+- [x] **Task 01**: Create DB engine module (`src/db/engine.ts`) with `better-sqlite3` singleton and initialization
+- [x] **Task 02**: Create schema setup script including vectors table, FTS5 virtual view, and triggers
+- [x] **Task 03**: Create `/src/server/index.ts` Elysia app entry point with CORS, health endpoint, error middleware
+- [x] **Task 04**: Implement DB service for inserting text + JSON-encoded embeddings into both tables
+- [x] **Task 05**: Build `/search` handler: parse query → FTS5 candidate fetch → JS cosine sort → return top-K scored results
 
 ## Non-Goals (Out of Scope)
 Full ingestion pipeline (`POST /ingest`) — that's Spec #2.

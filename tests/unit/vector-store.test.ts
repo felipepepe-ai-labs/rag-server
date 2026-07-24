@@ -38,7 +38,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  db.close();
+  if (db && !db.closed) db.close();
 });
 
 describe('VectorStore.insert', () => {
