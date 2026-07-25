@@ -5,9 +5,10 @@ describe('chunkByWords', () => {
   it('should split text into chunks of size words', () => {
     const text = 'a b c d e f g h i j k l m n o p q r s t'.trim();
     const chunks = chunkByWords(text, 5, 1);
-    expect(chunks).toHaveLength(4);
+    expect(chunks).toHaveLength(5);
     expect(chunks[0]).toBe('a b c d e');
-    expect(chunks[1]).toContain('b c d e f g h i j');
+    // Overlap: last word of chunk[0] = first word of chunk[1]
+    expect(chunks[1].split(' ')[0]).toBe('e');
   });
 
   it('should handle single word', () => {
@@ -21,11 +22,16 @@ describe('chunkByWords', () => {
   });
 
   it('should not break words across chunks', () => {
-    const text = 'hello-world short_text longerword'.split('_').join('-');
-    const chunks = chunkByWords(text, 1, 0);
-    // Each chunk should be a whole word (no partial words at boundaries)
+    const text = 'hello-world short-text longer-word'.split('_').join('-');
+    const chunks = chunkByWords(text, 2, 1);
+    // Every word in every chunk must be an intact token (no partial words)
     for (const chunk of chunks) {
-      expect(chunk.split(' ').every(w => w.includes('-'))).toBe(false || w.length <= 20);
+      const words = chunk.split(' ');
+      expect(words.length).toBeGreaterThan(0);
+      // Each word should appear in the original text as-is (not truncated)
+      for (const w of words) {
+        expect(text.includes(w)).toBe(true);
+      }
     }
   });
 

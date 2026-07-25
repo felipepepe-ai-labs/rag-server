@@ -43,18 +43,17 @@ export async function readFileContents(req: import('node:http').IncomingMessage)
   const idx = body.indexOf(sep);
   if (idx === -1) throw new TypeError('Invalid multipart body: missing boundary separator');
 
-  const parts = body.slice(idx + sep.length).split(Buffer.from(sep));
+  const parts = body.slice(idx + sep.length).toString().split(sep);
   // Remove trailing \r\n--boundary\r\n or \r\n--boundary--\r\n
   parts.pop();
 
-  return parts.map((part: Buffer) => {
-    const headersStr = part.toString('utf-8').split('\r\n\r\n')[0];
-    const headerMatch = headersStr.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)";\s*filename="([^"]*)"/);
+  return parts.map((part: string) => {
+    const headerMatch = part.match(/Content-Disposition:\s*form-data;\s*name="([^"]+)";\s*filename="([^"]*)"/);
     if (!headerMatch) throw new TypeError('Invalid multipart header');
 
     const name = headerMatch[1];
     const filename = headerMatch[2];
-    const content = part.toString('utf-8').split('\r\n\r\n')[1] ?? '';
+    const content = part.split('\r\n\r\n')[1] ?? '';
     return { name, filename, content: content.trim() };
   });
 }
@@ -76,13 +75,18 @@ export function chunkByWords(text: string, size: number = CHUNK_SIZE, overlap: n
 
   while (start < words.length) {
     const end = Math.min(start + size, words.length);
-    const chunk = words.slice(start, end).join(' ');
 
-    if (chunk.length > 0) {
-      chunks.push(chunk);
+    // If the remaining words would form a duplicate when overlap pulls start back, just take them as-is
+    if (end === words.length && start !== 0) {
+      const chunk = words.slice(start).join(' ');
+      if (chunk.length > 0) chunks.push(chunk);
+      break;
     }
 
-    start = end === words.length ? words.length : end - overlap;
+    const chunk = words.slice(start, end).join(' ');
+    if (chunk.length > 0) chunks.push(chunk);
+
+    start = end - overlap;
   }
 
   return chunks.filter(c => c.length > 0);
