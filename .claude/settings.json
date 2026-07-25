@@ -1,0 +1,6 @@
+{
+  "headroom": {
+    "auto_compress_above_lines": 100,
+    "description": "Automatically compress files >100 lines via headroom before reading in Claude Code sessions. Reduces rtk read token overhead from ~19% to ~60-80%."
+  }
+}
