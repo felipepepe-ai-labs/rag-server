@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output (already tracked intentionally)
+# dist/ — NOT ignored, committed by this project
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Runtime
+*.log
+logs/
+
+# OS / IDE
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Native build artifacts
+build/better_sqlite3.node
+
+# Cache
+.pnp/
+.pnp.js
+.caches/
+__pycache__/
