@@ -1,9 +1,11 @@
 import { createServer } from 'node:http';
 import Database from 'better-sqlite3';
 import { Elysia } from 'elysia';
+import { z } from 'zod';
 import { getEngine, type DBEngine } from '../db/engine.js';
 import { VectorStore } from '../db/vector-store.js';
 import { createSearchRoute, type SearchQuery, type SearchResponse } from '../routes/search.js';
+import { createInsertRoute } from '../routes/insert.js';
 import { env } from '../config/env.js';
 
 // --- Initialize DB engine + schema ---
@@ -18,6 +20,7 @@ vstore.prepare();
 const healthHandler = () => ({ status: 'ok', uptime: process.uptime() });
 
 const searchHandler = createSearchRoute(vstore);
+const insertHandler = createInsertRoute(vstore);
 
 // --- Elysia app bootstrap with CORS via derive (headers attached per-response) ---
 export const app = new Elysia({ prefix: '' })
@@ -30,6 +33,25 @@ export const app = new Elysia({ prefix: '' })
     return {};
   })
   .get('/health', healthHandler)
+  .post('/insert', async (ctx) => {
+      try {
+        const body = ctx.body;
+        const result = await insertHandler(body);
+        return new Response(JSON.stringify(result), {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          return new Response(JSON.stringify({ status: 'error', message: err.errors[0].message }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        throw err;
+      }
+    },
+  )
   .get(
     '/search',
     (ctx) => {
@@ -74,7 +96,9 @@ function toNodeHandler(appInstance: typeof app) {
       method: req.method ?? 'GET',
       headers,
       body: body ?? undefined,
+      duplex: 'half',
     }));
+    res.statusCode = response.status;
     for (const [key, value] of response.headers.entries()) {
       res.setHeader(key, value);
     }
