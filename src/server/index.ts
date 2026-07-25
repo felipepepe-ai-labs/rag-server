@@ -6,6 +6,7 @@ import { getEngine, type DBEngine } from '../db/engine.js';
 import { VectorStore } from '../db/vector-store.js';
 import { createSearchRoute, type SearchQuery, type SearchResponse } from '../routes/search.js';
 import { createInsertRoute } from '../routes/insert.js';
+import { createImportRoute } from '../routes/documents.js';
 import { env } from '../config/env.js';
 
 // --- Initialize DB engine + schema ---
@@ -16,11 +17,22 @@ engine.init();
 const vstore = new VectorStore(engine.db);
 vstore.prepare();
 
+// --- CORS headers helper (shared with Elysia derive) ---
+function corsHeaders(): Record<string, string> {
+  if (env.corsAllowOrigin !== '*') return {};
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+}
+
 // --- Route handlers ---
 const healthHandler = () => ({ status: 'ok', uptime: process.uptime() });
 
 const searchHandler = createSearchRoute(vstore);
 const insertHandler = createInsertRoute(vstore);
+const importHandler = createImportRoute(vstore);
 
 // --- Elysia app bootstrap with CORS via derive (headers attached per-response) ---
 export const app = new Elysia({ prefix: '' })
@@ -52,13 +64,6 @@ export const app = new Elysia({ prefix: '' })
       }
     },
   )
-  .get(
-    '/search',
-    (ctx) => {
-      const q = ctx.query.q ?? '';
-      return searchHandler({ q });
-    },
-  )
   .onError(({ code, error, set }) => {
     if (code === 'INTERNAL_SERVER_ERROR') {
       set.status = 500;
@@ -73,6 +78,32 @@ export const app = new Elysia({ prefix: '' })
 // --- Start server via Node.js http adapter ---
 function toNodeHandler(appInstance: typeof app) {
   return async (req: import('node:http').IncomingMessage, res: import('node:http').ServerResponse) => {
+    // Intercept /documents/import at raw HTTP level — needs raw IncomingMessage for multipart parsing
+    if (req.url?.startsWith('/documents/import') && req.method === 'POST') {
+      try {
+        const response = await importHandler(req);
+        res.writeHead(201, {
+          'Content-Type': 'application/json',
+          ...(env.corsAllowOrigin === '*' ? corsHeaders() : {}),
+        });
+        res.end(JSON.stringify(response));
+        return;
+      } catch (err) {
+        if (err instanceof TypeError) {
+          res.writeHead(400, {
+            'Content-Type': 'application/json',
+            ...(env.corsAllowOrigin === '*' ? corsHeaders() : {}),
+          });
+          res.end(JSON.stringify({ status: 'error', message: err.message }));
+          return;
+        }
+        // Unexpected error — 500
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ status: 'error', message: 'Internal server error' }));
+      }
+      return;
+    }
+
     const url = new URL(req.url ?? '/', `http://localhost:${env.port}`);
     let body: ReadableStream | undefined;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
